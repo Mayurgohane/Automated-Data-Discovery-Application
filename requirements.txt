@@ -4,4 +4,5 @@ matplotlib
 seaborn
 scipy
 reportlab
-openpyxl  # Required to read Excel files with pandas
+openpyxl  
+
