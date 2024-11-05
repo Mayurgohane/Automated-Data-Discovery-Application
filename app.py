@@ -27,19 +27,15 @@ if uploaded_file and st.button("Submit"):
     st.write("## Data Preview")
     st.dataframe(st.session_state.df.head())
 
-    # Data Types and Unique Counts
     st.write("## Data Types and Unique Counts")
     st.write(st.session_state.data_types)
 
-    # Basic Statistics
     st.write("## Basic Statistics")
     st.write(st.session_state.df.describe())
 
-    # Missing Values
     st.write("## Missing Values")
     st.write(st.session_state.missing_values[st.session_state.missing_values > 0])
 
-    # Visual representation of missing data
     if st.session_state.missing_values.sum() > 0:
         st.write("### Missing Values Heatmap")
         fig, ax = plt.subplots()
