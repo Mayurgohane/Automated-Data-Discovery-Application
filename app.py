@@ -64,14 +64,12 @@ if uploaded_file and st.button("Submit"):
         sns.histplot(st.session_state.df[target_column], kde=True, ax=ax)
         st.pyplot(fig)
 
-    # Box Plot of All Numerical Columns
     st.write("## Box Plot of All Numerical Columns")
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.boxplot(data=numerical_df, orient="h")
     plt.savefig("boxplot_all_numerical.png")
     st.pyplot(fig)
 
-    # Count Plot for Categorical Variables
     st.write("## Count Plot for Categorical Variables")
     categorical_columns = st.session_state.df.select_dtypes(include=['object', 'category']).columns
     for col in categorical_columns:
@@ -80,7 +78,6 @@ if uploaded_file and st.button("Submit"):
         sns.countplot(y=st.session_state.df[col], order=st.session_state.df[col].value_counts().index, ax=ax)
         st.pyplot(fig)
 
-    # Correlation Heatmap
     st.session_state.numerical_df = numerical_df  # Store numerical_df in session state
     if st.session_state.numerical_df.shape[1] > 1:
         st.write("## Correlation Heatmap")
@@ -91,16 +88,14 @@ if uploaded_file and st.button("Submit"):
     else:
         st.write("Not enough numerical columns for a correlation heatmap.")
 
-# PDF Generation Function (no changes needed for new features in PDF)
 def generate_pdf():
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     
-    # Title
+    
     c.setFont("Helvetica-Bold", 16)
     c.drawString(100, 750, "Enhanced Data Discovery Report")
 
-    # Data Types and Unique Counts
     c.setFont("Helvetica", 12)
     c.drawString(30, 720, "Data Types and Unique Counts:")
     data_types_text = st.session_state.data_types.to_string()
@@ -110,7 +105,6 @@ def generate_pdf():
         text_object.textLine(line)
     c.drawText(text_object)
 
-    # Basic Statistics
     c.drawString(30, 580, "Basic Statistics:")
     stats_text = st.session_state.df.describe().to_string()
     text_object = c.beginText(30, 560)
@@ -119,7 +113,6 @@ def generate_pdf():
         text_object.textLine(line)
     c.drawText(text_object)
 
-    # Missing Values
     if st.session_state.missing_values.sum() > 0:
         c.drawString(30, 440, "Missing Values:")
         missing_text = st.session_state.missing_values[st.session_state.missing_values > 0].to_string()
@@ -130,7 +123,6 @@ def generate_pdf():
         c.drawText(text_object)
         c.drawImage("missing_values_heatmap.png", 100, 250, width=400, height=150)
 
-    # Correlation Heatmap
     if "numerical_df" in st.session_state and st.session_state.numerical_df.shape[1] > 1:
         c.drawString(30, 120, "Correlation Heatmap:")
         c.drawImage("correlation_heatmap.png", 100, 20, width=400, height=100)
@@ -139,7 +131,6 @@ def generate_pdf():
     buffer.seek(0)
     return buffer
 
-# Download PDF button
 if "df" in st.session_state and st.button("Download Enhanced EDA Report as PDF"):
     pdf = generate_pdf()
     st.download_button(
