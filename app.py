@@ -43,7 +43,6 @@ if uploaded_file and st.button("Submit"):
         plt.savefig("missing_values_heatmap.png")
         st.pyplot(fig)
 
-    # Pairplot for Numerical Columns
     st.write("## Pairplot for Numerical Variables")
     numerical_df = st.session_state.df.select_dtypes(include=['float64', 'int64'])
     if not numerical_df.empty:
@@ -51,7 +50,6 @@ if uploaded_file and st.button("Submit"):
         plt.savefig("pairplot.png")
         st.pyplot(fig)
 
-    # Skewness and Kurtosis
     st.write("## Skewness and Kurtosis")
     skew_kurt_df = pd.DataFrame({
         "Skewness": numerical_df.apply(lambda x: skew(x.dropna())),
@@ -59,7 +57,6 @@ if uploaded_file and st.button("Submit"):
     })
     st.write(skew_kurt_df)
 
-    # Distribution of Target Variable
     target_column = st.selectbox("Select a target column (if applicable) for distribution analysis", st.session_state.df.columns)
     if target_column:
         st.write(f"## Distribution of Target Variable: {target_column}")
