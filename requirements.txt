@@ -2,5 +2,6 @@ streamlit
 pandas
 matplotlib
 seaborn
+scipy
 reportlab
-openpyxl  
+openpyxl  # Required to read Excel files with pandas

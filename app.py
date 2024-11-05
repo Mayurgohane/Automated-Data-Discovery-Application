@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from scipy.stats import skew, kurtosis
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
@@ -23,7 +24,7 @@ if uploaded_file and st.button("Submit"):
         st.session_state.df = pd.read_excel(uploaded_file)
 
     # Store other calculated data in session state
-    st.session_state.data_types = pd.DataFrame({"Data Type": st.session_state.df.dtypes, "Unique Values": st.session_state.df.nunique()})
+    st.session_state.data_types = pd.DataFrame({"Data Type": st.session_state.df.dtypes.astype(str), "Unique Values": st.session_state.df.nunique()})
     st.session_state.missing_values = st.session_state.df.isnull().sum()
 
     # Display data preview
@@ -50,50 +51,58 @@ if uploaded_file and st.button("Submit"):
         plt.savefig("missing_values_heatmap.png")
         st.pyplot(fig)
 
-    # Outlier Detection with Box Plot
-    st.write("## Outlier Detection (Box Plot)")
-    numerical_columns = st.session_state.df.select_dtypes(include=['float64', 'int64']).columns
-    selected_boxplot_column = st.selectbox("Select a column for box plot", numerical_columns)
-    if selected_boxplot_column:
-        st.write(f"### Box Plot for {selected_boxplot_column}")
-        fig, ax = plt.subplots()
-        sns.boxplot(x=st.session_state.df[selected_boxplot_column], ax=ax)
-        plt.savefig("boxplot.png")
+    # Pairplot for Numerical Columns
+    st.write("## Pairplot for Numerical Variables")
+    numerical_df = st.session_state.df.select_dtypes(include=['float64', 'int64'])
+    if not numerical_df.empty:
+        fig = sns.pairplot(numerical_df)
+        plt.savefig("pairplot.png")
         st.pyplot(fig)
 
-    # Histograms for Numerical Data
-    st.write("## Histograms for Numerical Data")
-    selected_hist_column = st.selectbox("Select a column for histogram", numerical_columns)
-    if selected_hist_column:
-        st.write(f"### Histogram for {selected_hist_column}")
+    # Skewness and Kurtosis
+    st.write("## Skewness and Kurtosis")
+    skew_kurt_df = pd.DataFrame({
+        "Skewness": numerical_df.apply(lambda x: skew(x.dropna())),
+        "Kurtosis": numerical_df.apply(lambda x: kurtosis(x.dropna()))
+    })
+    st.write(skew_kurt_df)
+
+    # Distribution of Target Variable
+    target_column = st.selectbox("Select a target column (if applicable) for distribution analysis", st.session_state.df.columns)
+    if target_column:
+        st.write(f"## Distribution of Target Variable: {target_column}")
         fig, ax = plt.subplots()
-        sns.histplot(st.session_state.df[selected_hist_column], kde=True, ax=ax)
-        plt.savefig("histogram.png")
+        sns.histplot(st.session_state.df[target_column], kde=True, ax=ax)
         st.pyplot(fig)
 
-    # Categorical Column Analysis
-    st.write("## Categorical Column Analysis")
+    # Box Plot of All Numerical Columns
+    st.write("## Box Plot of All Numerical Columns")
+    fig, ax = plt.subplots(figsize=(10, 8))
+    sns.boxplot(data=numerical_df, orient="h")
+    plt.savefig("boxplot_all_numerical.png")
+    st.pyplot(fig)
+
+    # Count Plot for Categorical Variables
+    st.write("## Count Plot for Categorical Variables")
     categorical_columns = st.session_state.df.select_dtypes(include=['object', 'category']).columns
-    selected_cat_column = st.selectbox("Select a categorical column for analysis", categorical_columns)
-    if selected_cat_column:
-        st.write(f"### Count Plot for {selected_cat_column}")
+    for col in categorical_columns:
+        st.write(f"### Count Plot for {col}")
         fig, ax = plt.subplots()
-        sns.countplot(y=st.session_state.df[selected_cat_column], order=st.session_state.df[selected_cat_column].value_counts().index, ax=ax)
-        plt.savefig("countplot.png")
+        sns.countplot(y=st.session_state.df[col], order=st.session_state.df[col].value_counts().index, ax=ax)
         st.pyplot(fig)
 
     # Correlation Heatmap
-    numerical_df = st.session_state.df.select_dtypes(include=['float64', 'int64'])  # Filter only numerical columns
-    if not numerical_df.empty and numerical_df.shape[1] > 1:  # Check if there are at least two numerical columns
+    st.session_state.numerical_df = numerical_df  # Store numerical_df in session state
+    if st.session_state.numerical_df.shape[1] > 1:
         st.write("## Correlation Heatmap")
         fig, ax = plt.subplots(figsize=(10, 8))
-        sns.heatmap(numerical_df.corr(), annot=True, cmap="coolwarm", ax=ax)
+        sns.heatmap(st.session_state.numerical_df.corr(), annot=True, cmap="coolwarm", ax=ax)
         plt.savefig("correlation_heatmap.png")
         st.pyplot(fig)
     else:
         st.write("Not enough numerical columns for a correlation heatmap.")
 
-# PDF Generation Function
+# PDF Generation Function (no changes needed for new features in PDF)
 def generate_pdf():
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
@@ -133,7 +142,7 @@ def generate_pdf():
         c.drawImage("missing_values_heatmap.png", 100, 250, width=400, height=150)
 
     # Correlation Heatmap
-    if not numerical_df.empty and numerical_df.shape[1] > 1:
+    if "numerical_df" in st.session_state and st.session_state.numerical_df.shape[1] > 1:
         c.drawString(30, 120, "Correlation Heatmap:")
         c.drawImage("correlation_heatmap.png", 100, 20, width=400, height=100)
 
