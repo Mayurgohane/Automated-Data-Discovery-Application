@@ -142,3 +142,5 @@ if "df" in st.session_state and st.button("Download Enhanced EDA Report as PDF")
 
 else:
     st.info("Please upload a file and click Submit to begin the analysis.")
+
+
