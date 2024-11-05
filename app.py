@@ -8,26 +8,22 @@ from reportlab.pdfgen import canvas
 import io
 import os
 
-# Set up Streamlit page
-st.title("Enhanced Automated Data Discovery Application")
+
+st.title("Automated Data Discovery Application")
 st.write("Upload a CSV or Excel file to start exploring your data.")
 
-# File upload
+
 uploaded_file = st.file_uploader("Upload a CSV or Excel file", type=["csv", "xlsx"])
 
-# Add a Submit button to start the analysis
 if uploaded_file and st.button("Submit"):
-    # Read the uploaded file and store it in session state
     if uploaded_file.name.endswith(".csv"):
         st.session_state.df = pd.read_csv(uploaded_file)
     elif uploaded_file.name.endswith(".xlsx"):
         st.session_state.df = pd.read_excel(uploaded_file)
 
-    # Store other calculated data in session state
     st.session_state.data_types = pd.DataFrame({"Data Type": st.session_state.df.dtypes.astype(str), "Unique Values": st.session_state.df.nunique()})
     st.session_state.missing_values = st.session_state.df.isnull().sum()
 
-    # Display data preview
     st.write("## Data Preview")
     st.dataframe(st.session_state.df.head())
 
